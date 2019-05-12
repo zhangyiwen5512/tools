@@ -28,13 +28,6 @@ for c in snapshot_file:
 
 
 
-
-exit(0)
-
-
-
-
-
 # 数据制作
 x = torch.linspace(-5,5,200)
 x = Variable(x, requires_grad=True)
