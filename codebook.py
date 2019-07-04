@@ -41,4 +41,58 @@
 # # N接近序列长度时排序后切片
 # print(sorted(nums)[:10], sorted(nums)[-10:])
 
+# # 字典
+# from collections import defaultdict, OrderedDict
+# d = defaultdict(list)  # 允许重复元素
+# d = defaultdict(set)  # 消除重复元素
+# d = OrderedDict()  # 始终有序的字典
+
+# # 字典计算,利用zip(),将键值对翻转，只能使用一次
+# # 字典对key()和items()支持集合操作，可以找出相同的键值对&，减去部分键值对-
+# prices = {'A': 10, 'B': 20, 'C': 30, 'D': 40}
+# print(min(zip(prices.values(), prices.keys())))
+# print(max(zip(prices.values(), prices.keys())))
+
+
+# 顺序不变对情况下删去重复元素
+a = [1, 5, 2, 1, 9, 1, 5, 10]
+b = [{'x': 1, 'y': 2}, {'x': 1, 'y': 3}, {'x': 1, 'y': 2}, {'x': 2, 'y': 4}]
+
+# def deldupe(a):
+#     already = set()
+#     for ele in a:
+#
+#         if ele not in already:
+#             yield ele
+#             already.add(ele)
+
+
+def deldupe(a, key=None):
+    already = set()
+    alreadydict = {}
+    for ele in a:
+        if None == key:
+            if ele not in already:
+                yield ele
+                already.add(ele)
+        else:
+            for k in ele.keys():
+                if k in key:
+                    val = ele[k]
+                    print(ele)
+                    assert ele in a
+                    alreadydict.setdefault()
+                    if ele not in alreadydict:
+                        print('val: %s ''k: %s '% (val, k))
+                        yield ele
+                        already.add(val)
+
+
+
+print(list(deldupe(a)))
+print(list(deldupe(b, ['x', 'y'])))
+
+# 顺序可变
+print(set(a))
+
 
