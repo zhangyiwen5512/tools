@@ -19,7 +19,7 @@
 
 
 # 输出最后的N个元素
-# from collections import deque
+# from collections import deque  # 队列
 #
 #
 # def s(n):
@@ -41,7 +41,7 @@
 # # N接近序列长度时排序后切片
 # print(sorted(nums)[:10], sorted(nums)[-10:])
 
-# # 字典
+# # 字典defaultdict, OrderedDict
 # from collections import defaultdict, OrderedDict
 # d = defaultdict(list)  # 允许重复元素
 # d = defaultdict(set)  # 消除重复元素
@@ -53,46 +53,66 @@
 # print(min(zip(prices.values(), prices.keys())))
 # print(max(zip(prices.values(), prices.keys())))
 
+# # 字典排序 itemgetter可以用lambda表达式代替
+# from operator import itemgetter
+# b = [{'x': 2, 'y': 4}, {'x': 1, 'y': 2}, {'x': 1, 'y': 3}, {'x': 1, 'y': 2}, {'x': 2, 'y': 4}, {'x': 1, 'y': 4}]
+# print(sorted(b, key=itemgetter('x')))
+# print(sorted(b, key=itemgetter('y')))
 
-# 顺序不变对情况下删去重复元素
-a = [1, 5, 2, 1, 9, 1, 5, 10]
-b = [{'x': 1, 'y': 2}, {'x': 1, 'y': 3}, {'x': 1, 'y': 2}, {'x': 2, 'y': 4}]
-
-# def deldupe(a):
-#     already = set()
-#     for ele in a:
+# # 顺序不变的情况下删去重复元素
+# a = [1, 5, 2, 1, 9, 1, 5, 10]
+# b = [{'x': 2, 'y': 4}, {'x': 1, 'y': 2}, {'x': 1, 'y': 3}, {'x': 1, 'y': 2}, {'x': 2, 'y': 4}, {'x': 1, 'y': 4}]
 #
-#         if ele not in already:
-#             yield ele
-#             already.add(ele)
+# # def deldupe(a):
+# #     already = set()
+# #     for ele in a:
+# #
+# #         if ele not in already:
+# #             yield ele
+# #             already.add(ele)
+#
+#
+# def deldupe(a, key=None):
+#     already = []
+#     for ele in a:
+#         if key is None:
+#             if ele not in already:
+#                 yield ele
+#                 already.append(ele)
+#         else:
+#             for k in ele.keys():
+#                 if k in key:
+#                     if ele not in already:
+#                         yield ele
+#                         already.append(ele)
+#
+#
+# print(list(deldupe(a)))
+# print(list(deldupe(b, ['x', 'y'])))
+# print(list(deldupe(b, ['x'])))
+#
+# # 顺序可变
+# print(set(a))
 
 
-def deldupe(a, key=None):
-    already = set()
-    alreadydict = {}
-    for ele in a:
-        if None == key:
-            if ele not in already:
-                yield ele
-                already.add(ele)
-        else:
-            for k in ele.keys():
-                if k in key:
-                    val = ele[k]
-                    print(ele)
-                    assert ele in a
-                    alreadydict.setdefault()
-                    if ele not in alreadydict:
-                        print('val: %s ''k: %s '% (val, k))
-                        yield ele
-                        already.add(val)
+# # 智能切片并命名
+# i = [1, 5, 2, 1, 9, 1, 5, 10]
+# a = slice(0, 4, 2)  # 切刀
+# a = i.indices(len(i))
+# print(i[a], i[a.start], i[a.stop], i[a.step])
 
 
-
-print(list(deldupe(a)))
-print(list(deldupe(b, ['x', 'y'])))
-
-# 顺序可变
-print(set(a))
+# # 智能计数 Counter对象可以作运算
+# from collections import Counter
+# words = ['s', 'f', 'g', 'g', 'w', 'w', 'f', 'h', 'i', 'y', 't', 'g', 'k', 'v', 'c', 'v', 'a', 's', 's', 's', 's', 'v', 'q', ]
+# more_words = ['f', 'h', 'i', 'y', 't', 'g', 'k', 'v', 'c', 'v', 'a', ]
+# b = Counter(more_words)
+# c = Counter(words)
+# print(c)
+# c.update(more_words)
+# print(c)
+#
+# print(b)
+# print(b + c, '\n', c - b)
 
 
