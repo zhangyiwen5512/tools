@@ -313,7 +313,7 @@ void childMen(men_t *ptr)
         exit(1);
     }
     
-    mesg = ptr->message;
+    memcpy(mesg, ptr->message, strlen(ptr->message));
     int i = ptr->index;
 
     if (sem_post(mutex) == -1)
@@ -395,11 +395,9 @@ void fatherPipe()
     {     
         sleep(1);
         n = read(readfd, file, MAXLINE);
-
         if (n > 0)
         {
             size += n;
-            gettimeofday(&t_start, NULL); 
         }
 		if (n == 0)
 			break;
@@ -408,7 +406,7 @@ void fatherPipe()
             fprintf(stderr, "child read error\n");
             exit(1);
         }  
-        if (size >= 10 * strlen("./tmp/fifo.%d"))
+        if (size >= 10 * strlen("./tmp/fifo%d"))
             break;
     }
 
@@ -416,18 +414,21 @@ void fatherPipe()
     int i = 0;
     char *ptr;
     char *start = file;
+
     /* filename break */
     for (; i < 10; i++)
     {   
         ptr = strchr(start + 1, '.');
         if (ptr == NULL)
             break;
+        memset(filename[i], 0, ptr - start + 1);
         memcpy(filename[i], start, ptr - start);
-        printf("%s %d\n", filename[i], i);
+        printf("%s\n", filename[i]);
         start = ptr;
-    }   
+    }  
+    memset(filename[i], 0, strlen(start) + 1); 
     memcpy(filename[i], start, strlen(start));
-    printf("%s %d\n", filename[i], i);
+    printf("%s\n", filename[i]);
 
     printf("sleep 1s\n");
     sleep(1);
@@ -437,7 +438,6 @@ void fatherPipe()
     i = 0;   
     for (; i < 10; i++)
     {
-
         int writefd = open(filename[i], O_WRONLY, 0);
         if (writefd < 0)
         {
