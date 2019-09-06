@@ -1,6 +1,20 @@
-# 主机发现
+# 目标申明Target Specification
+
+    凡是不是参数的命令行选项都被认为是主机目标。
+    若没有--resolve-all选项，只有第一个被解析的IP地址被扫描。
+    若要扫描多个相邻主机，使用CIDR-style地址：IP或者主机名/<numbits>。/0将会扫描整个internet网络，/32扫描一个主机。IPv6最大值为/128.
+    Nmap通过八位位组范围寻址支持灵活寻址：192.168.0-255.1-254和192.168.3-5,7.1。192.158.范围.范围，来避开某些地址。
+    目标声明选项：
+    -iL: 从文件中读入要扫描的主机。
+    -iR: 扫描指定数量的随机主机。0为用不停止。
+    --exclude <host1>[,<host2>[,...]]: 指定扫描中要排除的主机。
+    --excludefile <exclude_file>: 从文件中指定扫描中要排除的主机。
+
+# 主机发现ping scan
 
 ## 探测公网IP
+
+    若没有其他P*发现参数，发送四种数据ICMP echo requset, TCP SYN到443端口(HTTPS), TCP SYN到80端口(HTTP),ICMP timestamp request,只要有一个包返回就认为主机开机。
 
     -Pn: 将所有指定的主机视作开启的，跳过主机发现的过程。
     -P0: 同-Pn
@@ -10,11 +24,11 @@
     --system-dns: 指定使用系统的DNS服务器,除非Nmap的DNS代码有bug.一般不使用该选项 
     --traceroute: 追踪每个路由节点。追踪路径。
     --resolve-all: 如果主机名目标解析为多个地址，请扫描所有地址。 默认行为是仅扫描第一个已解析的地址。
+    --disable-arp-ping： 禁用arp来发现主机
 
 ### nmap -sn Address
     Ping Scan 只进行主机发现，不进行端口扫描。
-    发送四种数据ICMP echo requset, TCP SYN到443端口(HTTPS), TCP SYN到80端口(HTTP),ICMP timestamp request,只要有一个包返回就认为主机开机。
-
+    
     nmap -sn www.baidu.com
     Starting Nmap 7.80 ( https://nmap.org ) at 2019-09-06 09:14 CST
     Nmap scan report for www.baidu.com (14.215.177.39)
@@ -239,15 +253,8 @@
     Nmap done: 32 IP addresses (0 hosts up) scanned in 0.20 seconds
 
 
-
-
-
-
-
-
-
-
-    sudo nmap -PE --resolve-all www.sina.com --dns-servers 8.8.8.8,114.114.114.114 --traceroute 
+### sudo nmap -PE --resolve-all www.sina.com --dns-servers 8.8.8.8,114.114.114.114 --traceroute 
+### sudo nmap -P* --resolve-all Address --dns-servers <>,<> --traceroute
     Starting Nmap 7.80 ( https://nmap.org ) at 2019-09-06 16:12 CST
     Stats: 0:02:58 elapsed; 0 hosts completed (14 up), 14 undergoing SYN Stealth Scan
     SYN Stealth Scan Timing: About 64.48% done; ETC: 16:17 (0:01:37 remaining)
@@ -472,14 +479,20 @@
 
     Nmap done: 14 IP addresses (14 hosts up) scanned in 268.19 seconds
 
+# 端口扫描port scan
+
+    用于确定目标主机的TCP/UDP端口的开放情况。默认情况下，Nmap会扫描1000个最有可能开放的TCP端口
+    Nmap通过探测将端口划分为6个状态：
+    1.open：端口是开放的。
+    2.closed：端口是关闭的。
+    3.filtered：端口被防火墙IDS/IPS屏蔽，无法确定其状态。
+    4.unfiltered：端口没有被屏蔽，但是否开放需要进一步确定。
+    5.open|filtered：端口是开放的或被屏蔽。
+    6.closed|filtered ：端口是关闭的或被屏蔽
 
 
 
-
-
-
-
-# 端口扫描
+## 
 
 # 版本侦测
 
