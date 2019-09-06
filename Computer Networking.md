@@ -86,19 +86,19 @@
     0200   3a SP 7a 68 2d 43 4e 2c 7a 68 3b 71 3d 30 2e 39   : zh-CN,zh;q=0.9
     0210   \r \n \r \n                                       ....
 
-#### <font color=red>HTTP响应报文
+#### HTTP响应报文
 
-<font color=red>HTTP/1.1 200 OK\r\n
-<font color=blue>Date: Tue, 03 Sep 2019 07:21:13 GMT\r\n
-<font color=green>Server: Apache/2.4.6 (CentOS) OpenSSL/1.0.2k-fips PHP/5.4.16 mod_perl/2.0.10 Perl/v5.16.3\r\n
-<font color=black>Last-Modified: Tue, 03 Sep 2019 05:59:01 GMT\r\n
-<font color=#D02090>ETag: "51-5919fc9021bea"\r\n
-<font color=#FF6347>Accept-Ranges: bytes\r\n
-<font color=#008080>Content-Length: 81\r\n
-<font color=#A0522D>Keep-Alive: timeout=5, max=100\r\n
-<font color=#FF0000>Connection: Keep-Alive\r\n
-<font color=#98FB98>Content-Type: text/html; charset=UTF-8\r\n
-<font color=black>\r\n
+    HTTP/1.1 200 OK\r\n
+    Date: Tue, 03 Sep 2019 07:21:13 GMT\r\n
+    Server: Apache/2.4.6 (CentOS) OpenSSL/1.0.2k-fips PHP/5.4.16 mod_perl/2.0.10 Perl/v5.16.3\r\n
+    Last-Modified: Tue, 03 Sep 2019 05:59:01 GMT\r\n
+    ETag: "51-5919fc9021bea"\r\n
+    Accept-Ranges: bytes\r\n
+    Content-Length: 81\r\n
+    Keep-Alive: timeout=5, max=100\r\n
+    Connection: Keep-Alive\r\n
+    Content-Type: text/html; charset=UTF-8\r\n
+    \r\n
 
 
     正文内容
