@@ -10,6 +10,7 @@
     --exclude <host1>[,<host2>[,...]]: 指定扫描中要排除的主机。
     --excludefile <exclude_file>: 从文件中指定扫描中要排除的主机。
 
+
 # 主机发现ping scan
 
 ## 探测公网IP
@@ -26,7 +27,9 @@
     --resolve-all: 如果主机名目标解析为多个地址，请扫描所有地址。 默认行为是仅扫描第一个已解析的地址。
     --disable-arp-ping： 禁用arp来发现主机
 
+
 ### nmap -sn Address
+
     Ping Scan 只进行主机发现，不进行端口扫描。
     
     nmap -sn www.baidu.com
@@ -36,8 +39,11 @@
     Other addresses for www.baidu.com (not scanned): 14.215.177.38
     Nmap done: 1 IP address (1 host up) scanned in 0.04 seconds
 
+
 ## -PE/PP/PM: 使用ICMP echo、 ICMP timestamp、ICMP netmask 请求包发现主机。
+
 ### nmap  -PE Address
+
     -PE 通过向目标发送ICMP Echo数据包来探测目标主机是否存活，倘若目标主机在线，该命令还会探测其开放的端口以及运行的服务！许多主机的防火墙会禁止这些报文
 
     sudo nmap -PE www.baidu.com
@@ -52,7 +58,9 @@
 
     Nmap done: 1 IP address (1 host up) scanned in 6.95 seconds
 
+
 ### nmap  -PP Address
+
     -PP ICMP time stamp时间戳扫描
     在大多数防火墙配置不当时可能会得到回复。倘若目标主机在线，该命令还会探测其开放的端口以及运行的服务！   
 
@@ -67,7 +75,9 @@
 
     Nmap done: 1 IP address (1 host up) scanned in 10.04 seconds
 
+
 ### nmap  -PM Address
+
     -PM ICMP netmask地址掩码扫描会
     试图用备选的ICMP等级Ping指定主机，可能要加入-Pn选项
     
@@ -90,8 +100,11 @@
 
     Nmap done: 1 IP address (1 host up) scanned in 8.31 seconds
     
+
 ## -PS/PA/PU/PY[portlist]: 使用TCP SYN/TCP ACK或SCTP INIT/ECHO方式进行发现。
+
 ### nmap -PS Address
+
     -PS用TCP SYN ping发送一个SYN包到目标系统，并监听响应
 
     nmap -PS www.baidu.com
@@ -118,7 +131,9 @@
 
     Nmap done: 1 IP address (1 host up) scanned in 52.30 seconds
 
+
 ### nmap -PA Address
+
     -PA 对指定主机进行TCP Ack Ping扫描。只扫描确认（ACK）数据包
 
     nmap -PA www.baidu.com
@@ -133,7 +148,9 @@
 
     Nmap done: 1 IP address (1 host up) scanned in 33.51 seconds
 
+
 ### nmap -PU Address
+
     -PU UDP ping，它发送一个空的(除非指定了--data-length UDP报文到给定的端口.
     可以穿越只过滤TCP的防火墙和过滤器
 
@@ -152,7 +169,9 @@
 
     Nmap done: 1 IP address (1 host up) scanned in 34.08 seconds
 
+
 ### nmap -PY Address
+
     -PY指示的Nmap执行一个SCTP INIT Ping。只要收到回复就可认为主机是存活的
 
     sudo nmap -PY0-1000 www.sina.com
@@ -177,7 +196,9 @@
 
     Nmap done: 1 IP address (1 host up) scanned in 140.53 seconds
 
+
 ### nmap -PO Address
+
     -PO 进行一个IP协议ping
     IP协议ping用指定的协议发送一个包给目标，填充指定的协议到IP首部。如果没有指定协议，默认的协议是 1 (ICMP), 2 (IGMP)和4 (IP-in-IP),TCP (protocol 6), UDP (protocol 17) and SCTP (protocol 132),若有对应协议回应或ICMP不可达，则主机活跃
 
@@ -212,7 +233,9 @@
 
     Nmap done: 1 IP address (1 host up) scanned in 30.68 seconds
 
+
 ### nmap -sL Address
+
     -sL: List Scan 列表扫描，仅将指定的目标的IP列举出来，不进行主机发现。对指定的IP地址执行一个反向DNS查询
     
     sudo nmap -sL www.baidu.com/27
@@ -253,8 +276,34 @@
     Nmap done: 32 IP addresses (0 hosts up) scanned in 0.20 seconds
 
 
+### nmap -PR Address
+
+    -PR:-ARP Ping。ARP扫描，--send-ip取消ARP扫描。选项当扫描整个网络的时候自动使用。这种类型的探测比其他的ping方法更快。
+
+    sudo nmap -PR scanme.nmap.org
+    Starting Nmap 7.80 ( https://nmap.org ) at 2019-09-09 10:29 CST
+    Nmap scan report for scanme.nmap.org (45.33.32.156)
+    Host is up (0.27s latency).
+    Other addresses for scanme.nmap.org (not scanned): 2600:3c01::f03c:91ff:fe18:bb2f
+    Not shown: 991 closed ports
+    PORT      STATE    SERVICE
+    22/tcp    open     ssh
+    80/tcp    open     http
+    135/tcp   filtered msrpc
+    139/tcp   filtered netbios-ssn
+    445/tcp   filtered microsoft-ds
+    593/tcp   filtered http-rpc-epmap
+    4444/tcp  filtered krb524
+    9929/tcp  open     nping-echo
+    31337/tcp open     Elite
+
+    Nmap done: 1 IP address (1 host up) scanned in 41.36 seconds
+
+
 ### sudo nmap -PE --resolve-all www.sina.com --dns-servers 8.8.8.8,114.114.114.114 --traceroute 
+
 ### sudo nmap -P* --resolve-all Address --dns-servers <>,<> --traceroute
+
     Starting Nmap 7.80 ( https://nmap.org ) at 2019-09-06 16:12 CST
     Stats: 0:02:58 elapsed; 0 hosts completed (14 up), 14 undergoing SYN Stealth Scan
     SYN Stealth Scan Timing: About 64.48% done; ETC: 16:17 (0:01:37 remaining)
@@ -479,20 +528,297 @@
 
     Nmap done: 14 IP addresses (14 hosts up) scanned in 268.19 seconds
 
+
 # 端口扫描port scan
 
     用于确定目标主机的TCP/UDP端口的开放情况。默认情况下，Nmap会扫描1000个最有可能开放的TCP端口
     Nmap通过探测将端口划分为6个状态：
-    1.open：端口是开放的。
-    2.closed：端口是关闭的。
+    1.open：端口是开放的。端口扫描的主要目标。
+    2.closed：端口是关闭的。帮助判断主机是活跃的。
     3.filtered：端口被防火墙IDS/IPS屏蔽，无法确定其状态。
     4.unfiltered：端口没有被屏蔽，但是否开放需要进一步确定。
-    5.open|filtered：端口是开放的或被屏蔽。
-    6.closed|filtered ：端口是关闭的或被屏蔽
+    5.open|filtered：端口是开放的或被屏蔽。打开端口没有响应或数据包被丢弃。UDP，IP协议，FIN，NULL和Xmas扫描产生次结果。
+    6.closed|filtered ：端口是关闭的或被屏蔽。它仅用于IP ID空闲扫描
+
+    一次只执行一种端口扫描，除了UDP scan (-sU)和SCTP scan types (-sY, -sZ)将和另一种TCP scan结合
+
+    -p: 1-500指导端口号。-p U(UDP端口):1-5,T(TCP端口):1-5,S(SCTP端口):1-5
+    --scanflags: 自定义的TCP扫描选项。-scanflags URGACKPSHRSTSYNFIN所有设置，设置对应的位。结合-sA等选项选择TCP扫描类型。确定如何解释响应。默认按照-sS来解释。
+
+
+## -sS/sT/sA/sW/sM:指定使用 TCP SYN/Connect()/ACK/Window/Maimon scans的方式来对目标主机进行扫描。
+
+### nmap -sS Address
+
+    -sS: TCP SYN scan。使用TCP SYN方式扫描端口。该方式发送SYN到目标端口，如果收到SYN/ACK回复，那么可以判断端口是开放的；如果收到RST包，说明该端口是关闭的。如果没有收到回复，那么可以判断该端口被屏蔽了。
+
+    sudo nmap -sS www.baidu.com --resolve-all -p 60-500
+    Starting Nmap 7.80 ( https://nmap.org ) at 2019-09-09 10:21 CST
+    Nmap scan report for www.baidu.com (14.215.177.39)
+    Host is up (0.013s latency).
+    Not shown: 439 filtered ports
+    PORT    STATE SERVICE
+    80/tcp  open  http
+    443/tcp open  https
+
+    Nmap scan report for www.baidu.com (14.215.177.38)
+    Host is up (0.016s latency).
+    Not shown: 439 filtered ports
+    PORT    STATE SERVICE
+    80/tcp  open  http
+    443/tcp open  https
+
+    Nmap done: 2 IP addresses (2 hosts up) scanned in 7.13 seconds
+
+
+### nmap -sT Address 
+
+    -sT: (TCP connect scan）。使用TCP connect方式扫描端口。默认的TCP扫描方式。推荐使用TCP SYN扫描。建立连接，可能被服务器记录而被发现。
+
+    sudo nmap -sT www.baidu.com --resolve-all -p60-500
+    Starting Nmap 7.80 ( https://nmap.org ) at 2019-09-09 10:39 CST
+    Nmap scan report for www.baidu.com (14.215.177.39)
+    Host is up (0.016s latency).
+    Not shown: 439 filtered ports
+    PORT    STATE SERVICE
+    80/tcp  open  http
+    443/tcp open  https
+
+    Nmap scan report for www.baidu.com (14.215.177.38)
+    Host is up (0.021s latency).
+    Not shown: 439 filtered ports
+    PORT    STATE SERVICE
+    80/tcp  open  http
+    443/tcp open  https
+
+    Nmap done: 2 IP addresses (2 hosts up) scanned in 130.09 seconds
+
+
+### nmap -sU Address
+
+    -sU: UDP扫描。可以和TCP扫描结合。--data, --data-string, --data-length添加发送的内容。
+    使用-sV辅助判断。使用--host-timeout跳过慢速主机
+
+    sudo nmap -sU www.baidu.com --resolve-all -p U:60-500
+    Starting Nmap 7.80 ( https://nmap.org ) at 2019-09-09 11:01 CST
+    Nmap scan report for www.baidu.com (180.101.49.11)
+    Host is up (0.030s latency).
+    All 441 scanned ports on www.baidu.com (180.101.49.11) are open|filtered
+
+    Nmap scan report for www.baidu.com (180.101.49.12)
+    Host is up (0.042s latency).
+    All 441 scanned ports on www.baidu.com (180.101.49.12) are open|filtered
+
+    Nmap done: 2 IP addresses (2 hosts up) scanned in 6.09 seconds
+
+    sudo nmap -sU scanme.nmap.org --resolve-all -p U:60-500
+    Starting Nmap 7.80 ( https://nmap.org ) at 2019-09-09 11:02 CST
+    Nmap scan report for scanme.nmap.org (45.33.32.156)
+    Host is up (0.20s latency).
+    Other addresses for scanme.nmap.org (not scanned): 2600:3c01::f03c:91ff:fe18:bb2f
+    Not shown: 433 closed ports
+    PORT    STATE         SERVICE
+    68/udp  open|filtered dhcpc
+    123/udp open          ntp
+    135/udp open|filtered msrpc
+    136/udp open|filtered profile
+    137/udp open|filtered netbios-ns
+    138/udp open|filtered netbios-dgm
+    139/udp open|filtered netbios-ssn
+    445/udp open|filtered microsoft-ds
+
+    Nmap done: 1 IP address (1 host up) scanned in 565.20 seconds
+
+
+### nmap -sY Address
+
+    -sY: SCTP init scan。不建立SCTP连接。相当于TCP SYN扫描。允许在打开，关闭和过滤状态之间进行清晰，可靠的区分。
+
+    sudo nmap -sY scanme.nmap.org --resolve-all -p S:60-500
+    Starting Nmap 7.80 ( https://nmap.org ) at 2019-09-09 11:16 CST
+    Nmap scan report for scanme.nmap.org (45.33.32.156)
+    Host is up (0.17s latency).
+    Other addresses for scanme.nmap.org (not scanned): 2600:3c01::f03c:91ff:fe18:bb2f
+    All 441 scanned ports on scanme.nmap.org (45.33.32.156) are filtered
+
+    Nmap done: 1 IP address (1 host up) scanned in 811.18 seconds
+
+
+### nmap -sA Address
+
+    -sA: TCP ACK scan。不能确定open(开放的)或者 open|filtered(开放或者过滤的))端口。 它用于发现防火墙规则，确定它们是有状态的还是无状态的，哪些端口是被过滤的。当扫描未被过滤的系统时， open(开放的)和closed(关闭的) 端口都会返回RST报文。Nmap把它们标记为 unfiltered(未被过滤的)。
+
+    sudo nmap -sA scanme.nmap.org --resolve-all -p 60-500
+    Starting Nmap 7.80 ( https://nmap.org ) at 2019-09-09 15:13 CST
+    Nmap scan report for scanme.nmap.org (45.33.32.156)
+    Host is up (0.16s latency).
+    Other addresses for scanme.nmap.org (not scanned): 2600:3c01::f03c:91ff:fe18:bb2f
+    All 441 scanned ports on scanme.nmap.org (45.33.32.156) are filtered
+
+    Nmap done: 1 IP address (1 host up) scanned in 76.05 seconds
+
+
+### nmap -sW Address
+
+    -sW: TCP Window scan。根据TCP窗口值是正数还是0，分别把端口标记为open或者 closed。依赖于Internet上少数系统的实现细节。不响应的端口或者发送特定的ICMP错误消息，标记为 filtered(被过滤的)。
+
+    udo nmap -sW scanme.nmap.org --resolve-all -p 60-500
+    Starting Nmap 7.80 ( https://nmap.org ) at 2019-09-09 15:16 CST
+    Nmap scan report for scanme.nmap.org (45.33.32.156)
+    Host is up (0.16s latency).
+    Other addresses for scanme.nmap.org (not scanned): 2600:3c01::f03c:91ff:fe18:bb2f
+    All 441 scanned ports on scanme.nmap.org (45.33.32.156) are filtered
+
+    Nmap done: 1 IP address (1 host up) scanned in 72.11 seconds
+
+
+### nmap -sM Address
+
+    -sM: TCP Maimon scan。设置FIN/ACK位。当端口打开时丢弃此报文，关闭时返回RST。
+
+    sudo nmap -sM scanme.nmap.org --resolve-all -p 60-500
+    Starting Nmap 7.80 ( https://nmap.org ) at 2019-09-09 15:51 CST
+    Nmap scan report for scanme.nmap.org (45.33.32.156)
+    Host is up (0.17s latency).
+    Other addresses for scanme.nmap.org (not scanned): 2600:3c01::f03c:91ff:fe18:bb2f
+    All 441 scanned ports on scanme.nmap.org (45.33.32.156) are open|filtered
+
+    Nmap done: 1 IP address (1 host up) scanned in 80.33 seconds
+
+
+## -sN; -sF; -sX (TCP NULL, FIN, and Xmas scans) 
+
+    当端口关闭时，任何不包含SYN，RST，或者ACK位的报文会导致 一个RST返回。而当端口开放时，应该没有任何响应，记为open|filtered。ICMP unreachable时为filtered。
+
+
+### nmap -sN Address
+
+    -sN: NULL扫描，不设置任何标志位(tcp标志头是0)。
+
+    sudo nmap -sN scanme.nmap.org --resolve-all -p 60-500
+    Starting Nmap 7.80 ( https://nmap.org ) at 2019-09-09 11:40 CST
+    Nmap scan report for scanme.nmap.org (45.33.32.156)
+    Host is up (0.20s latency).
+    Other addresses for scanme.nmap.org (not scanned): 2600:3c01::f03c:91ff:fe18:bb2f
+    All 441 scanned ports on scanme.nmap.org (45.33.32.156) are open|filtered
+
+    Nmap done: 1 IP address (1 host up) scanned in 10.91 seconds
+
+
+### nmap -sF Address
+
+    -sF: FIN扫描。只设置TCP FIN。
+
+    sudo nmap -sF www.sina.com --resolve-all -p 60-500
+    Starting Nmap 7.80 ( https://nmap.org ) at 2019-09-09 14:54 CST
+    Nmap scan report for www.sina.com (222.76.214.26)
+    Host is up (0.026s latency).
+    All 441 scanned ports on www.sina.com (222.76.214.26) are open|filtered
+
+    Nmap done: 1 IP address (1 host up) scanned in 20.93 seconds
+
+
+### nmap -sX Address
+
+    -sX: Xmas扫描。设置FIN，PSH，URG和标志。
+
+    sudo nmap -sX www.sina.com --resolve-all -p 60-500
+    Starting Nmap 7.80 ( https://nmap.org ) at 2019-09-09 14:55 CST
+    Nmap scan report for www.sina.com (183.2.200.242)
+    Host is up (0.019s latency).
+    Other addresses for www.sina.com (not scanned): 240e:83:201:4a00::3fa 240e:83:201:4a00::3fb
+    All 441 scanned ports on www.sina.com (183.2.200.242) are open|filtered
+
+    Nmap scan report for www.sina.com (59.36.226.238)
+    Host is up (0.012s latency).
+    Other addresses for www.sina.com (not scanned): 240e:83:201:4a00::3fa 240e:83:201:4a00::3fb
+    rDNS record for 59.36.226.238: 238.226.36.59.broad.jm.gd.dynamic.163data.com.cn
+    All 441 scanned ports on www.sina.com (59.36.226.238) are open|filtered
+
+    Nmap scan report for www.sina.com (119.147.70.216)
+    Host is up (0.022s latency).
+    Other addresses for www.sina.com (not scanned): 240e:83:201:4a00::3fa 240e:83:201:4a00::3fb
+    All 441 scanned ports on www.sina.com (119.147.70.216) are open|filtered
+
+    Nmap scan report for www.sina.com (59.36.226.239)
+    Host is up (0.011s latency).
+    Other addresses for www.sina.com (not scanned): 240e:83:201:4a00::3fa 240e:83:201:4a00::3fb
+    rDNS record for 59.36.226.239: 239.226.36.59.broad.jm.gd.dynamic.163data.com.cn
+    All 441 scanned ports on www.sina.com (59.36.226.239) are open|filtered
+
+    Nmap scan report for www.sina.com (119.147.70.217)
+    Host is up (0.013s latency).
+    Other addresses for www.sina.com (not scanned): 240e:83:201:4a00::3fa 240e:83:201:4a00::3fb
+    All 441 scanned ports on www.sina.com (119.147.70.217) are open|filtered
+
+    Nmap scan report for www.sina.com (59.36.226.240)
+    Host is up (0.011s latency).
+    Other addresses for www.sina.com (not scanned): 240e:83:201:4a00::3fa 240e:83:201:4a00::3fb
+    rDNS record for 59.36.226.240: 240.226.36.59.broad.jm.gd.dynamic.163data.com.cn
+    All 441 scanned ports on www.sina.com (59.36.226.240) are open|filtered
+
+    Nmap scan report for www.sina.com (119.147.70.218)
+    Host is up (0.013s latency).
+    Other addresses for www.sina.com (not scanned): 240e:83:201:4a00::3fa 240e:83:201:4a00::3fb
+    All 441 scanned ports on www.sina.com (119.147.70.218) are open|filtered
+
+    Nmap scan report for www.sina.com (59.36.226.241)
+    Host is up (0.011s latency).
+    Other addresses for www.sina.com (not scanned): 240e:83:201:4a00::3fa 240e:83:201:4a00::3fb
+    rDNS record for 59.36.226.241: 241.226.36.59.broad.jm.gd.dynamic.163data.com.cn
+    All 441 scanned ports on www.sina.com (59.36.226.241) are open|filtered
+
+    Nmap scan report for www.sina.com (119.147.70.219)
+    Host is up (0.012s latency).
+    Other addresses for www.sina.com (not scanned): 240e:83:201:4a00::3fa 240e:83:201:4a00::3fb
+    All 441 scanned ports on www.sina.com (119.147.70.219) are open|filtered
+
+    Nmap scan report for www.sina.com (59.36.226.242)
+    Host is up (0.0073s latency).
+    Other addresses for www.sina.com (not scanned): 240e:83:201:4a00::3fa 240e:83:201:4a00::3fb
+    rDNS record for 59.36.226.242: 242.226.36.59.broad.jm.gd.dynamic.163data.com.cn
+    All 441 scanned ports on www.sina.com (59.36.226.242) are open|filtered
+
+    Nmap scan report for www.sina.com (59.36.226.243)
+    Host is up (0.0085s latency).
+    Other addresses for www.sina.com (not scanned): 240e:83:201:4a00::3fa 240e:83:201:4a00::3fb
+    rDNS record for 59.36.226.243: 243.226.36.59.broad.jm.gd.dynamic.163data.com.cn
+    All 441 scanned ports on www.sina.com (59.36.226.243) are open|filtered
+
+    Nmap scan report for www.sina.com (59.36.226.244)
+    Host is up (0.0065s latency).
+    Other addresses for www.sina.com (not scanned): 240e:83:201:4a00::3fa 240e:83:201:4a00::3fb
+    rDNS record for 59.36.226.244: 244.226.36.59.broad.jm.gd.dynamic.163data.com.cn
+    All 441 scanned ports on www.sina.com (59.36.226.244) are open|filtered
+
+    Nmap done: 12 IP addresses (12 hosts up) scanned in 28.92 seconds
+
+
+### nmap -sZ Address
+
+    -sZ (SCTP COOKIE ECHO scan)。SCTP在开放端口上静默丢弃包含COOKIE ECHO块，如果端口关闭则发送ABORT。不能区分打开和过滤的端口。扫描不像INIT扫描那么明显。
+
+    sudo nmap -sZ scanme.nmap.org --resolve-all -p 60-500
+    Starting Nmap 7.80 ( https://nmap.org ) at 2019-09-09 15:55 CST
+    Nmap scan report for scanme.nmap.org (45.33.32.156)
+    Host is up (0.18s latency).
+    Other addresses for scanme.nmap.org (not scanned): 2600:3c01::f03c:91ff:fe18:bb2f
+    All 441 scanned ports on scanme.nmap.org (45.33.32.156) are open|filtered
+
+    Nmap done: 1 IP address (1 host up) scanned in 83.77 seconds
 
 
 
-## 
+### nmap -sI
+    -sI <zombie host>[:<probeport>] (空闲扫描)。真正的盲目扫描。数据包不是从自己IP中发出，使用指定的僵尸主机。默认使用80端口。
+    1 寻找合适的僵尸主机。
+    2 利用nmap进行僵尸扫描。
+
+### nmap -sO
+
+
+### nmap -b
+
 
 # 版本侦测
 
