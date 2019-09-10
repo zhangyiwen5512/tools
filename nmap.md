@@ -543,7 +543,12 @@
     一次只执行一种端口扫描，除了UDP scan (-sU)和SCTP scan types (-sY, -sZ)将和另一种TCP scan结合
 
     -p: 1-500指定端口号。-p U(UDP端口):1-5,T(TCP端口):1-5,S(SCTP端口):1-5
-    --scanflags: 自定义的TCP扫描选项。-scanflags URGACKPSHRSTSYNFIN所有设置，设置对应的位。结合-sA等选项选择TCP扫描类型。确定如何解释响应。默认按照-sS来解释。
+    --scanflags: 自定义的TCP扫描选项。-scanflags URGACKPSHRSTSYNFIN所有设置，设置对应的位。结合-sA等选项选择TCP扫描类型。确定如何解释响应。默认按照-sS来解释。-p ftp,http*。
+    --exclude-ports: 排除的端口。
+    -F: 可能扫描100个端口而不是默认的1000个。根据频率而定。需要nmap-services文件。
+    -r: 不打乱端口扫描序列，顺序扫描。
+    --port-ratio <ratio><decimal number between 0 and 1>: 根据声明的比例扫描nmap-services文件中的端口。
+    --top-ports <n>: 排除-exclude-ports指定的所有端口后，扫描nmap-services文件中找到的<n>最高比率端口。
 
 
 ## -sS/sT/sA/sW/sM:指定使用 TCP SYN/Connect()/ACK/Window/Maimon scans的方式来对目标主机进行扫描。
@@ -811,11 +816,10 @@
 ### nmap -sI Address
 
     -sI: <zombie host>[:<probeport>] (空闲扫描)。真正的盲目扫描。数据包不是从自己IP中发出，使用指定的僵尸主机。默认使用80端口。
-
-    1 寻找合适的僵尸主机。
-    2 利用nmap进行僵尸扫描。
+    
 
     确定TCP端口是否打开的一种方法是向端口发送SYN（会话建立）数据包。如果端口打开，目标机器将响应SYN / ACK（会话请求确认）数据包，如果端口关闭，则响应RST（重置）。这是前面讨论的SYN扫描的基础。接收未经请求的SYN / ACK数据包的计算机将使用RST进行响应。未经请求的RST将被忽略。Internet上的每个IP数据包都有一个片段标识号（IP ID）。 由于许多操作系统只是为它们发送的每个数据包递增此数字，因此探测IPID可以告诉攻击者自上次探测以来已发送了多少数据包。
+    Idle scanning映射出一种信任关系。绕过一些过滤机制和路由器。
     1 探测僵尸的IP ID并记录下来。
     2 伪造来自僵尸的SYN数据包并将其发送到目标上的所需端口。根据端口状态，目标的反应可能会也可能不会导致僵尸的IP ID递增。
     3 再次探测僵尸的IP ID。 然后通过将该新IP ID与步骤1中记录的IP ID进行比较来确定目标端口状态。
@@ -835,6 +839,96 @@
     2 伪造IP ID发送到目的主机。僵尸和目的都不回应。
     3 再次探测僵尸的IP ID。增1,说明端口关闭或者被屏蔽。
 
+    ///////////////////////////////////////////////////////////////////////////
+    1 寻找合适的僵尸主机。
+    僵尸主机因该是空闲的，需要防止无关流量增加IP ID序列。
+    在僵尸候选网络上同时使用端口扫描，OS检测和ping扫描。加上 -v选项，OS检测可以确定IP ID的生成方式，如果类型为Incremental或Broken little-endian incremental则是一个好的候选僵尸。操作系统检测和开放端口列表还可以帮助识别可能空闲的系统。
+    对一个主机使用ipidseq NSE script。此脚本判断IP ID的生成方式。
+
+    sudo nmap scanme.nmap.org --script=ipidseq.nse -d --resolve-all
+    Starting Nmap 7.80 ( https://nmap.org ) at 2019-09-10 15:02 CST
+    PORTS: Using top 1000 ports found open (TCP:1000, UDP:0, SCTP:0)
+    --------------- Timing report ---------------
+    hostgroups: min 1, max 100000
+    rtt-timeouts: init 1000, min 100, max 10000
+    max-scan-delay: TCP 1000, UDP 1000, SCTP 1000
+    parallelism: min 0, max 0
+    max-retries: 10, host-timeout: 0
+    min-rate: 0, max-rate: 0
+    ---------------------------------------------
+    NSE: Using Lua 5.3.
+    NSE: Arguments from CLI: 
+    NSE: Loaded 1 scripts for scanning.
+    NSE: Script Pre-scanning.
+    NSE: Starting runlevel 1 (of 1) scan.
+    Initiating NSE at 15:02
+    Completed NSE at 15:02, 0.00s elapsed
+    Initiating Ping Scan at 15:02
+    Scanning scanme.nmap.org (45.33.32.156) [4 ports]
+    Packet capture filter (device eth0): dst host 10.10.0.121 and (icmp or icmp6 or ((tcp or udp or sctp) and (src host 45.33.32.156)))
+    We got a TCP ping packet back from 45.33.32.156 port 443 (trynum = 0)
+    Completed Ping Scan at 15:02, 0.22s elapsed (1 total hosts)
+    Overall sending rates: 18.25 packets / s, 693.38 bytes / s.
+    mass_rdns: Using DNS server 10.10.0.1
+    mass_rdns: Using DNS server 240e:f8:600b:5400::1
+    Initiating Parallel DNS resolution of 1 host. at 15:02
+    mass_rdns: 0.36s 0/1 [#: 2, OK: 0, NX: 0, DR: 0, SF: 0, TR: 1]
+    Completed Parallel DNS resolution of 1 host. at 15:02, 0.36s elapsed
+    DNS resolution of 1 IPs took 0.36s. Mode: Async [#: 2, OK: 1, NX: 0, DR: 0, SF: 0, TR: 1, CN: 0]
+    Initiating SYN Stealth Scan at 15:02
+    Scanning scanme.nmap.org (45.33.32.156) [1000 ports]
+    Packet capture filter (device eth0): dst host 10.10.0.121 and (icmp or icmp6 or ((tcp or udp or sctp) and (src host 45.33.32.156)))
+    Discovered open port 22/tcp on 45.33.32.156
+    Discovered open port 80/tcp on 45.33.32.156
+    Increased max_successful_tryno for 45.33.32.156 to 1 (packet drop)
+    Increased max_successful_tryno for 45.33.32.156 to 2 (packet drop)
+    Discovered open port 9929/tcp on 45.33.32.156
+    Discovered open port 31337/tcp on 45.33.32.156
+    Completed SYN Stealth Scan at 15:03, 26.38s elapsed (1000 total ports)
+    Overall sending rates: 42.08 packets / s, 1851.51 bytes / s.
+    NSE: Script scanning 45.33.32.156.
+    NSE: Starting runlevel 1 (of 1) scan.
+    Initiating NSE at 15:03
+    NSE: Starting ipidseq against scanme.nmap.org (45.33.32.156).
+    NSE: ipidseq against scanme.nmap.org (45.33.32.156) threw an error!
+    /usr/bin/../share/nmap/scripts/ipidseq.nse:228: bad argument #2 to 'pack' (string contains zeros)
+    stack traceback:
+        [C]: in function 'string.pack'
+        /usr/bin/../share/nmap/scripts/ipidseq.nse:228: in function </usr/bin/../share/nmap/scripts/ipidseq.nse:205>
+        (...tail calls...)
+
+    Completed NSE at 15:03, 0.23s elapsed
+    Nmap scan report for scanme.nmap.org (45.33.32.156)
+    Host is up, received reset ttl 52 (0.18s latency).
+    Other addresses for scanme.nmap.org (not scanned): 2600:3c01::f03c:91ff:fe18:bb2f
+    Scanned at 2019-09-10 15:02:57 CST for 27s
+    Not shown: 991 closed ports
+    Reason: 991 resets
+    PORT      STATE    SERVICE        REASON
+    22/tcp    open     ssh            syn-ack ttl 51
+    80/tcp    open     http           syn-ack ttl 52
+    135/tcp   filtered msrpc          no-response
+    139/tcp   filtered netbios-ssn    no-response
+    445/tcp   filtered microsoft-ds   no-response
+    593/tcp   filtered http-rpc-epmap no-response
+    4444/tcp  filtered krb524         no-response
+    9929/tcp  open     nping-echo     syn-ack ttl 52
+    31337/tcp open     Elite          syn-ack ttl 51
+    Final times for host: srtt: 180034 rttvar: 18274  to: 253130
+
+    NSE: Script Post-scanning.
+    NSE: Starting runlevel 1 (of 1) scan.
+    Initiating NSE at 15:03
+    Completed NSE at 15:03, 0.00s elapsed
+    Read from /usr/bin/../share/nmap: nmap-payloads nmap-services.
+    Nmap done: 1 IP address (1 host up) scanned in 27.75 seconds
+            Raw packets sent: 1115 (49.036KB) | Rcvd: 1042 (41.740KB)
+
+
+
+    2 利用nmap进行僵尸扫描。
+
+    ///////////////////////////////////////////////////////////////////////////
 
 ### nmap -sO Address
 
@@ -858,6 +952,252 @@
     -b: <ftp relay host> (FTP弹跳扫描)。代理ftp连接允许用户连接到一台FTP服务器，然后要求文件送到一台第三方服务器。导致FTP服务器对其它主机端口扫描。参数格式<username>:<password>@<server>:<port>。<Server>是某个脆弱的FTP服务器的名字或者IP地址也许可以省略<username>:<password>，如果服务器上开放了匿名用户(user:anonymous password:-wwwuser@)。端口号(以及前面的冒号)也可以省略，如果<server>使用默认的FTP端口(21)。但现在大部分已经被fix了。
 
 
-# 版本侦测
+# 服务和版本检测Service and Version Detection
 
-# 操作系统侦测
+    试图确定端口对应的服务，应用，版本号，主机名，设备类型，OS类型和其他信息。当RPC服务被发现时，会自动用于确定RPC程序和版本号，即使在防火墙之后。当找到一个在数据库里不存在的协议时nmap提供一个URL上传这个服务的信息。
+    --allports: 默认情况下会跳过TCP端口9100。设置后会检测此端口。
+    --version-intensity <intensity>: 探测强度0-9。级别越高越准确，但时间也越长，默认7.
+    --version-light: 即 --version-intensity 2。
+    --version-all: 即 --version-intensity 9。
+    --version-trace: --packet-trace的子集。打印出调试信息。
+
+
+### nmap -sV Address
+    
+    -sV: 开启版本检测。同-sR或者-A
+
+    sudo nmap -A www.baidu.com
+    Starting Nmap 7.80 ( https://nmap.org ) at 2019-09-10 18:50 CST
+    Nmap scan report for www.baidu.com (180.101.49.11)
+    Host is up (0.043s latency).
+    Other addresses for www.baidu.com (not scanned): 180.101.49.12
+    Not shown: 998 filtered ports
+    PORT    STATE SERVICE  VERSION
+    80/tcp  open  http     Apache httpd
+    | http-robots.txt: 9 disallowed entries 
+    | /baidu /s? /ulink? /link? /home/news/data/ /shifen/ 
+    |_/homepage/ /cpro /
+    |_http-server-header: BWS/1.1
+    |_http-title: \xE7\x99\xBE\xE5\xBA\xA6\xE4\xB8\x80\xE4\xB8\x8B\xEF\xBC\x8C\xE4\xBD\xA0\xE5\xB0\xB1\xE7\x9F\xA5\xE9\x81\x93
+    443/tcp open  ssl/http Apache httpd
+    | http-robots.txt: 9 disallowed entries 
+    | /baidu /s? /ulink? /link? /home/news/data/ /shifen/ 
+    |_/homepage/ /cpro /
+    |_http-server-header: BWS/1.1
+    |_http-title: Site doesn't have a title (text/html).
+    |_http-trane-info: Problem with XML parsing of /evox/about
+    | ssl-cert: Subject: commonName=baidu.com/organizationName=Beijing Baidu Netcom Science Technology Co., Ltd/stateOrProvinceName=beijing/countryName=CN
+    | Subject Alternative Name: DNS:baidu.com, DNS:click.hm.baidu.com, DNS:cm.pos.baidu.com, DNS:log.hm.baidu.com, DNS:update.pan.baidu.com, DNS:wn.pos.baidu.com, DNS:*.91.com, DNS:*.aipage.cn, DNS:*.aipage.com, DNS:*.apollo.auto, DNS:*.baidu.com, DNS:*.baidubce.com, DNS:*.baiducontent.com, DNS:*.baidupcs.com, DNS:*.baidustatic.com, DNS:*.baifae.com, DNS:*.baifubao.com, DNS:*.bce.baidu.com, DNS:*.bcehost.com, DNS:*.bdimg.com, DNS:*.bdstatic.com, DNS:*.bdtjrcv.com, DNS:*.bj.baidubce.com, DNS:*.chuanke.com, DNS:*.dlnel.com, DNS:*.dlnel.org, DNS:*.dueros.baidu.com, DNS:*.eyun.baidu.com, DNS:*.fanyi.baidu.com, DNS:*.gz.baidubce.com, DNS:*.hao123.baidu.com, DNS:*.hao123.com, DNS:*.hao222.com, DNS:*.im.baidu.com, DNS:*.map.baidu.com, DNS:*.mbd.baidu.com, DNS:*.mipcdn.com, DNS:*.news.baidu.com, DNS:*.nuomi.com, DNS:*.safe.baidu.com, DNS:*.smartapps.cn, DNS:*.ssl2.duapps.com, DNS:*.su.baidu.com, DNS:*.trustgo.com, DNS:*.xueshu.baidu.com, DNS:apollo.auto, DNS:baifae.com, DNS:baifubao.com, DNS:dwz.cn, DNS:mct.y.nuomi.com, DNS:www.baidu.cn, DNS:www.baidu.com.cn
+    | Not valid before: 2019-05-09T01:22:02
+    |_Not valid after:  2020-06-25T05:31:02
+    |_ssl-date: 2019-09-10T10:49:09+00:00; -1m38s from scanner time.
+    | tls-alpn: 
+    |_  http/1.1
+    | tls-nextprotoneg: 
+    |_  http/1.1
+    Warning: OSScan results may be unreliable because we could not find at least 1 open and 1 closed port
+    OS fingerprint not ideal because: Missing a closed TCP port so results incomplete
+    No OS matches for host
+    Network Distance: 13 hops
+
+    Host script results:
+    |_clock-skew: -1m38s
+
+    TRACEROUTE (using port 443/tcp)
+    HOP RTT      ADDRESS
+    1   9.50 ms  Gprs_R6900 (10.10.0.1)
+    2   9.58 ms  100.64.0.1
+    3   9.63 ms  121.8.141.41
+    4   15.06 ms 218.19.193.13
+    5   40.60 ms 202.97.19.113
+    6   36.58 ms 58.213.94.110
+    7   ...
+    8   36.66 ms 58.213.96.86
+    9   ... 12
+    13  29.26 ms 180.101.49.11
+
+    OS and Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+    Nmap done: 1 IP address (1 host up) scanned in 28.38 seconds
+
+    sudo nmap -A scanme.nmap.org
+    Starting Nmap 7.80 ( https://nmap.org ) at 2019-09-10 18:51 CST
+    Stats: 0:00:00 elapsed; 0 hosts completed (0 up), 0 undergoing Script Pre-Scan
+    NSE Timing: About 0.00% done
+    Nmap scan report for scanme.nmap.org (45.33.32.156)
+    Host is up (0.21s latency).
+    Other addresses for scanme.nmap.org (not scanned): 2600:3c01::f03c:91ff:fe18:bb2f
+    Not shown: 991 closed ports
+    PORT      STATE    SERVICE        VERSION
+    22/tcp    open     ssh            OpenSSH 6.6.1p1 Ubuntu 2ubuntu2.13 (Ubuntu Linux; protocol 2.0)
+    | ssh-hostkey: 
+    |   1024 ac:00:a0:1a:82:ff:cc:55:99:dc:67:2b:34:97:6b:75 (DSA)
+    |   2048 20:3d:2d:44:62:2a:b0:5a:9d:b5:b3:05:14:c2:a6:b2 (RSA)
+    |   256 96:02:bb:5e:57:54:1c:4e:45:2f:56:4c:4a:24:b2:57 (ECDSA)
+    |_  256 33:fa:91:0f:e0:e1:7b:1f:6d:05:a2:b0:f1:54:41:56 (ED25519)
+    80/tcp    open     http           Apache httpd 2.4.7 ((Ubuntu))
+    |_http-server-header: Apache/2.4.7 (Ubuntu)
+    |_http-title: Go ahead and ScanMe!
+    135/tcp   filtered msrpc
+    139/tcp   filtered netbios-ssn
+    445/tcp   filtered microsoft-ds
+    593/tcp   filtered http-rpc-epmap
+    4444/tcp  filtered krb524
+    9929/tcp  open     nping-echo     Nping echo
+    31337/tcp open     tcpwrapped
+    Aggressive OS guesses: Linux 2.6.32 (88%), Linux 2.6.18 (87%), Linux 2.6.39 (87%), Linux 3.10 - 3.12 (87%), Linux 3.4 (87%), Linux 3.5 (87%), Linux 4.2 (87%), Linux 4.4 (87%), Synology DiskStation Manager 5.1 (87%), WatchGuard Fireware 11.8 (87%)
+    No exact OS matches for host (test conditions non-ideal).
+    Network Distance: 13 hops
+    Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
+
+    TRACEROUTE (using port 53/tcp)
+    HOP RTT       ADDRESS
+    1   7.68 ms   Gprs_R6900 (10.10.0.1)
+    2   14.12 ms  100.64.0.1
+    3   ...
+    4   14.41 ms  121.8.109.81
+    5   ...
+    6   24.08 ms  202.97.94.102
+    7   363.56 ms 202.97.22.122
+    8   371.31 ms 202.97.50.30
+    9   371.38 ms 218.30.54.245
+    10  371.43 ms be3271.ccr41.lax01.atlas.cogentco.com (154.54.42.101)
+    11  371.48 ms be3176.ccr21.sjc01.atlas.cogentco.com (154.54.31.190)
+    12  371.54 ms be2095.rcr21.b001848-1.sjc01.atlas.cogentco.com (154.54.3.138)
+    13  371.56 ms scanme.nmap.org (45.33.32.156)
+
+    OS and Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+    Nmap done: 1 IP address (1 host up) scanned in 56.31 seconds
+
+
+# 操作系统侦测OS Detection
+
+    使用TCP / IP堆栈指纹识别进行远程操作系统检测。至少一个打开一个关闭的端口时检查很有效。
+    --osscan-limit:跳过不符合的主机 。至少一个打开一个关闭的端口时检查很有效。设置此选项，Nmap甚至不会针对不符合此条件的主机尝试操作系统检测。只有在使用-O或-A请求OS检测时才有意义。
+    --osscan-guess; --fuzzy: 打印猜测的OS。当Nmap无法检测到完美的OS匹配时，大胆的猜测近似匹配的对象。
+    --max-os-tries: 指定重复次数。当Nmap无法检测到完美的OS匹配时,默认重复5次。条件不好时2次。
+
+
+### nmap -O Address
+
+    -O: 开启OS检测。同-A。Nmap将一系列TCP和UDP数据包发送到远程主机，并检查响应中的每一位。 在执行TCP ISN采样，TCP选项支持和排序，IP ID采样以及初始窗口大小检查等几十项测试后，Nmap将结果与其超过2,600种已知操作系统指纹的nmap-os-db数据库进行比较并打印出来操作系统详细信息。
+
+    sudo nmap -O scanme.nmap.org
+    Starting Nmap 7.80 ( https://nmap.org ) at 2019-09-10 19:05 CST
+    Nmap scan report for scanme.nmap.org (45.33.32.156)
+    Host is up (0.16s latency).
+    Other addresses for scanme.nmap.org (not scanned): 2600:3c01::f03c:91ff:fe18:bb2f
+    Not shown: 991 closed ports
+    PORT      STATE    SERVICE
+    22/tcp    open     ssh
+    80/tcp    open     http
+    135/tcp   filtered msrpc
+    139/tcp   filtered netbios-ssn
+    445/tcp   filtered microsoft-ds
+    593/tcp   filtered http-rpc-epmap
+    4444/tcp  filtered krb524
+    9929/tcp  open     nping-echo
+    31337/tcp open     Elite
+    Aggressive OS guesses: Linux 2.6.32 (88%), Linux 2.6.18 (87%), Linux 3.5 (87%), Linux 4.2 (87%), Linux 4.4 (87%), Synology DiskStation Manager 5.1 (87%), WatchGuard Fireware 11.8 (87%), Linux 2.6.35 (87%), Linux 3.10 (87%), Linux 2.6.32 or 3.10 (86%)
+    No exact OS matches for host (test conditions non-ideal).
+    Network Distance: 15 hops
+
+    OS detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+    Nmap done: 1 IP address (1 host up) scanned in 25.40 seconds
+
+
+
+ # 脚本Nmap Scripting Engine (NSE)
+
+    --script <filename>|<category>|<directory>|<expression>[,...]: 
+    --script-args <n1>=<v1>,<n2>={<n3>=<v3>},<n4>={<v4>,<v5>}: 
+    --script-args-file <filename>:  
+    --script-help <filename>|<category>|<directory>|<expression>|all[,...]: 
+    --script-trace: 
+    --script-updatedb: 
+    -sC: 等同于--script=default。
+
+
+ # 性能设置Timing and Performance
+
+    --min-hostgroup <numhosts>; --max-hostgroup <numhosts>:
+    --min-parallelism <numprobes>; --max-parallelism <numprobes>:
+    --min-rtt-timeout <time>, --max-rtt-timeout <time>, --initial-rtt-timeout <time>:
+    --max-retries <numtries>:
+    --host-timeout <time>:
+    --script-timeout <time>:
+    --scan-delay <time>; --max-scan-delay <time>:
+    --min-rate <number>; --max-rate <number>:
+    --defeat-rst-ratelimit:
+    --defeat-icmp-ratelimit:
+    --nsock-engine epoll|kqueue|poll|select:
+    -T paranoid|sneaky|polite|normal|aggressive|insane:
+
+
+ # 防火墙绕过/IDS躲避Firewall/IDS Evasion and Spoofing
+
+    -f (fragment packets); --mtu (using the specified MTU):
+    -D <decoy1>[,<decoy2>][,ME][,...]:
+    -S <IP_Address>:
+    -e <interface>:
+    --source-port <portnumber>; -g <portnumber>:
+    --data <hex string>:
+    --data-string <string>:
+    --data-length <number>:
+    --ip-options <S|R [route]|L [route]|T|U ... >; --ip-options <hex string>:
+    --ttl <value>:
+    --randomize-hosts:
+    --spoof-mac <MAC address, prefix, or vendor name>:
+    --proxies <Comma-separated list of proxy URLs>:
+    --badsum:
+    --adler32:
+
+
+ # 输出Output
+
+    -oN <filespec>: 请求将正常输出定向到给定的文件名。
+    -oX <filespec>:
+    -oS <filespec>:
+    -oG <filespec>:
+    -oA <basename>:
+
+
+## 详细程度和调试选项Verbosity and debugging options
+    
+    -v<level>:
+    -d<level>:
+    --reason:
+    --stats-every <time>:
+    --packet-trace:
+    --open:
+    --iflist:
+
+
+## 其他输出选项Miscellaneous output options
+
+    --append-output:
+    --resume <filename>:
+    --stylesheet <path or URL>:
+    --webxml:
+    --no-stylesheet:
+
+
+# 其他选项Miscellaneous Options
+
+    -6: 开启IPv6扫描。
+    --datadir <directoryname>:
+    --servicedb <services file>:
+    --versiondb <service probes file>:
+    --send-eth:
+    --send-ip:
+    --privileged:
+    --unprivileged:
+    --release-memory:
+
+
+# 运行时交互Runtime Interaction
+
+    v / V: 升高/降低verbosity等级
+    d / D: 升高/降低debugging等级。
+    p / P: 开启/关闭packet tracing。
+    ?: 帮助。
+    其他: 打印状态信息
