@@ -542,7 +542,7 @@
 
     一次只执行一种端口扫描，除了UDP scan (-sU)和SCTP scan types (-sY, -sZ)将和另一种TCP scan结合
 
-    -p: 1-500指导端口号。-p U(UDP端口):1-5,T(TCP端口):1-5,S(SCTP端口):1-5
+    -p: 1-500指定端口号。-p U(UDP端口):1-5,T(TCP端口):1-5,S(SCTP端口):1-5
     --scanflags: 自定义的TCP扫描选项。-scanflags URGACKPSHRSTSYNFIN所有设置，设置对应的位。结合-sA等选项选择TCP扫描类型。确定如何解释响应。默认按照-sS来解释。
 
 
@@ -808,16 +808,54 @@
     Nmap done: 1 IP address (1 host up) scanned in 83.77 seconds
 
 
+### nmap -sI Address
 
-### nmap -sI
-    -sI <zombie host>[:<probeport>] (空闲扫描)。真正的盲目扫描。数据包不是从自己IP中发出，使用指定的僵尸主机。默认使用80端口。
+    -sI: <zombie host>[:<probeport>] (空闲扫描)。真正的盲目扫描。数据包不是从自己IP中发出，使用指定的僵尸主机。默认使用80端口。
+
     1 寻找合适的僵尸主机。
     2 利用nmap进行僵尸扫描。
 
-### nmap -sO
+    确定TCP端口是否打开的一种方法是向端口发送SYN（会话建立）数据包。如果端口打开，目标机器将响应SYN / ACK（会话请求确认）数据包，如果端口关闭，则响应RST（重置）。这是前面讨论的SYN扫描的基础。接收未经请求的SYN / ACK数据包的计算机将使用RST进行响应。未经请求的RST将被忽略。Internet上的每个IP数据包都有一个片段标识号（IP ID）。 由于许多操作系统只是为它们发送的每个数据包递增此数字，因此探测IPID可以告诉攻击者自上次探测以来已发送了多少数据包。
+    1 探测僵尸的IP ID并记录下来。
+    2 伪造来自僵尸的SYN数据包并将其发送到目标上的所需端口。根据端口状态，目标的反应可能会也可能不会导致僵尸的IP ID递增。
+    3 再次探测僵尸的IP ID。 然后通过将该新IP ID与步骤1中记录的IP ID进行比较来确定目标端口状态。
+
+    探测打开的端口IP ID增2:
+    1 取得僵尸的IP ID。主机向僵尸发送SYN/ACK，僵尸认为这是一个意外的SYN/ACK，发送RST和IP ID。
+    2 伪造IP ID发送到目的主机。若端口打开，则会对僵尸进行回应SYN/ACK。僵尸认为这也是一个意外的SYN/ACK，发生一个RST，IP ID增1,。
+    3 再次探测僵尸的IP ID。增2,说明端口打开。
+
+    探测关闭的端口IP ID增1:
+    1 取得僵尸的IP ID。主机向僵尸发送SYN/ACK，僵尸认为这是一个意外的SYN/ACK，发送RST和IP ID。
+    2 伪造IP ID发送到目的主机。若端口关闭，则会对僵尸进行回应RST。僵尸忽略RST，IP ID不变,。
+    3 再次探测僵尸的IP ID。增1,说明端口关闭。
+
+    探测被屏蔽的端口IP ID增1:
+    1 取得僵尸的IP ID。主机向僵尸发送SYN/ACK，僵尸认为这是一个意外的SYN/ACK，发送RST和IP ID。
+    2 伪造IP ID发送到目的主机。僵尸和目的都不回应。
+    3 再次探测僵尸的IP ID。增1,说明端口关闭或者被屏蔽。
 
 
-### nmap -b
+### nmap -sO Address
+
+    -sO: IP协议扫描。IP 协议扫描可以让您确定目标机支持哪些IP协议 (TCP，ICMP，IGMP，等等)。从目标主机收到任何协议的任何响应，Nmap就把那个协议标记为open。ICMP协议不可到达 错误(类型 3，代号 2) 导致协议被标记为 closed。其它ICMP不可到达协议(类型 3，代号 1，3，9，10，或者13)导致协议被标记为 filtered (虽然同时他们证明ICMP是 open )。如果重试之后仍没有收到响应，该协议就被标记为open|filtered。
+
+    sudo nmap -sO scanme.nmap.org --resolve-all
+    Starting Nmap 7.80 ( https://nmap.org ) at 2019-09-09 16:32 CST
+    Nmap scan report for scanme.nmap.org (45.33.32.156)
+    Host is up (0.16s latency).
+    Other addresses for scanme.nmap.org (not scanned): 2600:3c01::f03c:91ff:fe18:bb2f
+    Not shown: 254 open|filtered protocols
+    PROTOCOL STATE SERVICE
+    1        open  icmp
+    17       open  udp
+
+    Nmap done: 1 IP address (1 host up) scanned in 10.26 seconds
+
+
+### nmap -b Address
+
+    -b: <ftp relay host> (FTP弹跳扫描)。代理ftp连接允许用户连接到一台FTP服务器，然后要求文件送到一台第三方服务器。导致FTP服务器对其它主机端口扫描。参数格式<username>:<password>@<server>:<port>。<Server>是某个脆弱的FTP服务器的名字或者IP地址也许可以省略<username>:<password>，如果服务器上开放了匿名用户(user:anonymous password:-wwwuser@)。端口号(以及前面的冒号)也可以省略，如果<server>使用默认的FTP端口(21)。但现在大部分已经被fix了。
 
 
 # 版本侦测
