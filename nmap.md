@@ -956,7 +956,7 @@
 
     试图确定端口对应的服务，应用，版本号，主机名，设备类型，OS类型和其他信息。当RPC服务被发现时，会自动用于确定RPC程序和版本号，即使在防火墙之后。当找到一个在数据库里不存在的协议时nmap提供一个URL上传这个服务的信息。
     --allports: 默认情况下会跳过TCP端口9100。设置后会检测此端口。
-    --version-intensity <intensity>: 探测强度0-9。级别越高越准确，但时间也越长，默认7.
+    --version-intensity <intensity>: 探测强度，细粒度0-9。级别越高越准确，但时间也越长，默认7.
     --version-light: 即 --version-intensity 2。
     --version-all: 即 --version-intensity 9。
     --version-trace: --packet-trace的子集。打印出调试信息。
@@ -1105,32 +1105,33 @@
     Nmap done: 1 IP address (1 host up) scanned in 25.40 seconds
 
 
-
  # 脚本Nmap Scripting Engine (NSE)
 
-    --script <filename>|<category>|<directory>|<expression>[,...]: 
-    --script-args <n1>=<v1>,<n2>={<n3>=<v3>},<n4>={<v4>,<v5>}: 
-    --script-args-file <filename>:  
-    --script-help <filename>|<category>|<directory>|<expression>|all[,...]: 
-    --script-trace: 
-    --script-updatedb: 
+    --script <filename>|<category>|<directory>|<expression>[,...]: 运行指定的脚本。每个元素首先解释为表达式，然后解释为类别，最后解释为文件或目录名称。all可用于指定Nmap数据库中的每个脚本。+号强制运行。只加载路径下以.nse结尾的文件。可以使用and，或，而不是运算符来构建布尔表达式，从而完成更复杂的脚本选择。可以使用括号更改优先级。
+    --script-args <n1>=<v1>,<n2>={<n3>=<v3>},<n4>={<v4>,<v5>}: 提供NSE脚本的参数。脚本名.参数名限定使用的脚本，否则为通用参数。
+    --script-args-file <filename>: 从文件加载NSE脚本的参数。命令行上的任何参数都将取代文件中的参数。 
+    --script-help <filename>|<category>|<directory>|<expression>|all[,...]: 获得脚本帮助。
+    --script-trace: 打印脚本执行的所有传入和传出通信。做和--packet-trace相同的事情。
+    --script-updatedb: 更新scripts/script.db。
     -sC: 等同于--script=default。
 
 
  # 性能设置Timing and Performance
 
-    --min-hostgroup <numhosts>; --max-hostgroup <numhosts>:
-    --min-parallelism <numprobes>; --max-parallelism <numprobes>:
-    --min-rtt-timeout <time>, --max-rtt-timeout <time>, --initial-rtt-timeout <time>:
-    --max-retries <numtries>:
-    --host-timeout <time>:
-    --script-timeout <time>:
-    --scan-delay <time>; --max-scan-delay <time>:
-    --min-rate <number>; --max-rate <number>:
-    --defeat-rst-ratelimit:
-    --defeat-icmp-ratelimit:
-    --nsock-engine epoll|kqueue|poll|select:
-    -T paranoid|sneaky|polite|normal|aggressive|insane:
+    --min-hostgroup <numhosts>; --max-hostgroup <numhosts>: 调整平行扫描的组的大小。一次并行扫描一组。
+    --min-parallelism <numprobes>; --max-parallelism <numprobes>: 调整探测的平行度。根据网络条件自动在上下限内设置。
+    --min-rtt-timeout <time>, --max-rtt-timeout <time>，--initial-rtt-timeout <time>: 设定在超时时间。用于确定在放弃或重新传输探测。根据先前探测的响应时间计算而来。
+    --max-retries <numtries>: 设置端口扫描出错后的重传次数。
+    --host-timeout <time>: 设置主机的超时时间。跳过超时的主机。
+    --script-timeout <time>: 设置脚本执行时间的上限。任何超过该时间的脚本实例都将被终止，并且不会显示任何输出。如果启用了调试（-d），Nmap将报告每个超时。
+    --scan-delay <time>; --max-scan-delay <time>: 设置每个探测前的延迟时间。保持一定探测率。
+    --min-rate <number>; --max-rate <number>: 直接控制探测的频率。控制发包的速率。影响所有主机的探测。只影响主机发现和端口扫描。
+    --defeat-rst-ratelimit: 忽略ICMP RST速率限制。没有等待足够长的时间来进行速率限制的RST响应。
+    --defeat-icmp-ratelimit: 提高UDP扫描速度，针对ICMP错误消息的速率限制。
+    --nsock-engine epoll|kqueue|poll|select: 强制使用给定的nsock IO多路复用引擎。引擎支持受平台限制。
+    -T paranoid|sneaky|polite|normal|aggressive|insane: 细粒度控制，指定希望的积极程度。(0–5)或名称是偏执（0），偷偷摸摸（1），礼貌（2），正常（3），激进（4）和疯狂（5）。前两个是用于IDS逃避。礼貌模式会降低扫描速度，从而减少带宽并降低目标机器资源。普通模式是默认模式，因此-T3不执行任何操作。积极模式通过假设您处于合理快速且可靠的网络上来加快扫描速度。最后，疯狂模式假设您处于一个非常快速的网络或者愿意为速度牺牲一些准确性。可以与细粒度控件结合使用，指定的细粒度控件将优先于该参数的计时模板默认值。建议在扫描合理的现代可靠网络时使用-T4。
+    -T4相当于--max-rtt-timeout 1250ms --min-rtt-timeout 100ms --initial-rtt-timeout 500ms --max-retries 6并将最大TCP扫描延迟设置为10毫秒。 
+    T5相当于--max-rtt-timeout 300ms --min-rtt-timeout 50ms --initial-rtt-timeout 250ms --max-retries 2 --host-timeout 15m --script-timeout 10m以及将最大TCP扫描延迟设置为5 ms。
 
 
  # 防火墙绕过/IDS躲避Firewall/IDS Evasion and Spoofing
