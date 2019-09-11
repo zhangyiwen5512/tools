@@ -1136,69 +1136,72 @@
 
  # 防火墙绕过/IDS躲避Firewall/IDS Evasion and Spoofing
 
-    -f (fragment packets); --mtu (using the specified MTU):
-    -D <decoy1>[,<decoy2>][,ME][,...]:
-    -S <IP_Address>:
-    -e <interface>:
-    --source-port <portnumber>; -g <portnumber>:
-    --data <hex string>:
-    --data-string <string>:
-    --data-length <number>:
-    --ip-options <S|R [route]|L [route]|T|U ... >; --ip-options <hex string>:
-    --ttl <value>:
-    --randomize-hosts:
-    --spoof-mac <MAC address, prefix, or vendor name>:
-    --proxies <Comma-separated list of proxy URLs>:
-    --badsum:
-    --adler32:
+    -f ; --mtu: 报文分段，使用指定的MTU。
+    -D <decoy1>[,<decoy2>][,ME][,...]: 使用诱饵隐蔽扫描，造成多个主机同时扫描的假象。使用ME选项说明用自己的真实IP作为诱饵的位置，否则随机指定。在版本检测和TCP连接扫描中不起作用。
+    -S <IP_Address>: 使用另一个地址进行扫描。
+    -e <interface>: 使用指定的接口，收发包。
+    --source-port <portnumber>; -g <portnumber>: 源端口哄骗。改变发送的端口号。仅依赖于源端口号就信任数据流是一种常见的错误配置，即允许来自于这些端口的数据进入网络。
+    --data <hex string>: 加入自定义负载。二进制数据。
+    --data-string <string>: 加入自定义的字符串数据。
+    --data-length <number>: 加入随机数据作为负载。而不是使用任何特定于协议的有效负载。可以使扫描稍微不那么显眼。
+    --ip-options <S|R [route]|L [route]|T|U ... >; --ip-options <hex string>: 指定IP选项。
+    --ttl <value>: 设定IPv4 time-to-live字段。
+    --randomize-hosts: 打乱扫描目标主机的顺序。做多16384个。当结合小的timing options时减少引起的注意。
+    --spoof-mac <MAC address, prefix, or vendor name>: MAC地址欺骗。字符串“0”，Nmap选择一个完全随机的MAC地址。如果给定的字符品是一个16进制偶数(使用:分隔)，Nmap将使用这个MAC地址。如果是小于12的16进制数字，随机填充剩下的6个字节。如果参数不是0或16进制字符串，通过nmap-mac-prefixes查找厂商的名称(大小写区分)，如果找到匹配，使用厂商的OUI(3字节前缀)，然后随机填充剩余的3个节字。正确的--spoof-mac参数有，Apple，0，01:02:03:04:05:06，deadbeefcafe，0020F2，和Cisco.
+    --proxies <Comma-separated list of proxy URLs>: 设置代理，支持http代理和socks4代理。此功能仍处于开发阶段且存在局限性。
+    --badsum: 使用无效的checksum。收到的任何响应都可能来自防火墙或IDS，它们无需验证校验和。主机IP堆栈都正确地丢弃了这些数据包。
+    --adler32: 使用Adler32算法(已弃用)计算SCTP校验和。为了从旧的传统SCTP实现中获得响应，可能最好使用Adler32。
 
 
  # 输出Output
 
+    将连字符作为参数传递给其中一种格式类型。这会导致Nmap停用交互式输出，而是以指定的格式打印结果。所以命令nmap -oX-target只会将XML输出发送到stdout。文件名或连字符之间的空格是必需的，否则会创建新文件。'scan-％T-％D.xml'将使用一个名为scan-144840-121307.xml的XML文件。
+
     -oN <filespec>: 请求将正常输出定向到给定的文件名。
-    -oX <filespec>:
-    -oS <filespec>:
-    -oG <filespec>:
-    -oA <basename>:
+    -oX <filespec>: 将XML输出写入指定文件。XML输出引用一个XSL样式表，可用于将结果格式化为HTML。
+    -oS <filespec>: 脚本小子输出。
+    -oG <filespec>: Grep输出(已弃用)。只需要一个简单的grep主机说明，使用通道并通过awk或cut命令打印所需的域。
+    -oA <basename>: 为使用方便，利用-oA<basename>选项可将扫描结果以标准格式、XML格式和Grep格式一次性输出。分别存放在 <basename>.nmap，<basename>.xml和 <basename>.gnmap文件中。
 
 
-## 详细程度和调试选项Verbosity and debugging options
+## 输出的详细程度和调试选项Verbosity and debugging options
     
-    -v<level>:
-    -d<level>:
-    --reason:
-    --stats-every <time>:
-    --packet-trace:
-    --open:
-    --iflist:
+    -v<level>: 增加详细级别，使Nmap打印有关正在进行的扫描的更多信息。
+    -d<level>: 启用调试，并且可以指定调试等级。-d9设置为九级。这是最高的有效级别
+    --reason: 显示每个端口设置为特定状态的原因以及每个主机启动或关闭的原因。通过-d选项打开，或默认出现于XML文件中。
+    --stats-every <time>: 定期打印状态消息。
+    --packet-trace: 追踪数据的接收和发送。--version-trace若只关心版本检测，--script-trace若只关心脚本追踪。
+    --open: 只显示打开或可能打开的端口。
+    --iflist: 输出Nmap检测到的接口列表和系统路由，用于调试路由问题或设备描述失误(如Nmap把PPP连接当作以太网对待)。
 
 
 ## 其他输出选项Miscellaneous output options
 
-    --append-output:
-    --resume <filename>:
-    --stylesheet <path or URL>:
-    --webxml:
-    --no-stylesheet:
+    --append-output: 在输出文件中追加内容。这对于XML（-oX）扫描数据不起作用。
+    --resume <filename>: 如果保留了扫描输出文件，用户可以要求Nmap在执行停止时继续使用正在处理的目标进行扫描。只需指定--resume选项并将输出文件作为参数传递。不允许其他参数，因为Nmap解析输出文件以使用先前指定的相同。只需将Nmap称为nmap --resume <logfilename>即可。Nmap会将新结果附加到上一次执行中指定的数据文件中。可以从以下3种主要输出格式中的任何一种恢复扫描：正常，可涂抹或XML
+    --stylesheet <path or URL>: 附带一个名为nmap.xsl的XSL样式表，用于查看或将XML输出转换为HTML。如果要使用其他样式表，请将其指定为--stylesheet的参数。
+    --webxml: 即--stylesheet https://nmap.org/svn/docs/nmap.xsl。
+    --no-stylesheet: 防止Nmap将任何XSL样式表与其XML输出相关联。
 
 
 # 其他选项Miscellaneous Options
 
-    -6: 开启IPv6扫描。
-    --datadir <directoryname>:
-    --servicedb <services file>:
-    --versiondb <service probes file>:
-    --send-eth:
-    --send-ip:
-    --privileged:
-    --unprivileged:
-    --release-memory:
+    -6: 开启IPv6扫描。Ping扫描，端口扫描，版本检测和Nmap脚本引擎都支持IPv6。除了添加-6选项之外，命令语法与通常相同。
+    -A: 开启强力模式。启用其他高级和激进选项。目前，这可以实现OS检测（-O），版本扫描（-sV），脚本扫描（-sC）和traceroute（--traceroute）。
+    --datadir <directoryname>: Nmap在运行时在名为nmap-service-probes，nmap-services，nmap-protocols，nmap-rpc，nmap-mac-prefixes和nmap-os-db的文件中获取一些特殊数据。使用--datadir选项指定的目录中搜索这些文件。
+    --servicedb <services file>: 要求Nmap使用指定的服务文件，而不是Nmap附带的nmap-services数据文件。使用此选项还会导致使用快速扫描（-F）。
+    --versiondb <service probes file>: 要求Nmap使用指定的服务探测文件，而不是Nmap附带的nmap-service-probes数据文件。
+    --send-eth: 要求Nmap在原始以太网（数据链路）层而不是更高IP（网络）层发送数据包。
+    --send-ip: 要求Nmap通过原始IP套接字发送数据包，而不是发送较低级别的以太网帧。
+    --privileged: 假定用户具有全部权限。如果请求此类操作但是geteuid不为零，则Nmap将退出。
+    --unprivileged: 它告诉Nmap将用户视为缺少网络原始套接字和嗅探权限。 这对于测试，调试或操作系统的原始网络功能以某种方式被破坏非常有用。
+    --release-memory: 此选项仅对内存泄漏调试有用。 它导致Nmap在退出之前释放已分配的内存，以便更容易发现实际的内存泄漏。 通常，Nmap会跳过此，因为操作系统会在进程终止时执行此操作。
 
 
 # 运行时交互Runtime Interaction
 
-    v / V: 升高/降低verbosity等级
-    d / D: 升高/降低debugging等级。
+    v / V: 升高/降低详细等级
+    d / D: 升高/降低调试等级。
     p / P: 开启/关闭packet tracing。
     ?: 帮助。
     其他: 打印状态信息
