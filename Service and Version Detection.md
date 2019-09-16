@@ -944,9 +944,96 @@
 
 
 
+## Post-processors后处理
+
+    目前可用的后处理器有NSE、rpc Grinding和ssl隧道。Windows SMB询问正在考虑中。
+
+### Nmap Scripting Engine Integration
+
+    基于正则表达式的版本检测方法功能强大，但它不能识别所有内容。仅通过发送标准探测并将模式与响应匹配，无法识别某些服务。有些服务需要自定义探测字符串或复杂的多步骤握手过程。另一些则需要比正则表达式更高级的处理来识别响应。
+    https://nmap.org/book/nse-vscan.html
+
+### RPC Grinding
+
+    nmap可以通过以下三步过程直接与打开的rpc端口通信来确定所有相同的信息。
+    
+    1.TCP和/或UDP端口扫描将查找所有打开的端口。
+    2.版本检测确定哪些打开的端口使用SUNRPC协议。
+    3.rpc暴力引擎通过尝试对nmap rpc中的600个程序编号中的每一个使用空命令来确定每个rpc端口的程序标识。大多数情况下，nmap会猜错，并收到一条错误消息，指出请求的程序号未在端口上侦听。nmap继续尝试其列表中的每个数字，直到其中一个返回成功为止。如果nmap用尽了所有已知的程序号，或者如果端口发送的响应格式不正确，表明它不是真正的rpc，nmap将放弃这种不太可能的情况。
+
+    rpc程序标识探测并行完成，并为udp端口处理重传。每当版本检测发现任何rpc端口时，此功能就会自动激活。
+
+### SSL Post-processor Notes
+
+    只要检测到适当的（ssl）端口，ssl后处理器就会自动执行
+
+## nmap-service-probes 文件
+
+    nmap使用平面文件存储版本检测探测和匹配字符串。修改nmap-service-probes将自己的服务添加到检测引擎中。
+
+#### Exclude Directive 排除端口
+
+    只能用一次，且放在文件头部，在任何探测指令之前。作用同-p选项。nmap避免扫描9100-9107端口的默认行为可以让狡猾的用户更容易隐藏服务：只需在被排除的端口（如9100）上运行它，就不太可能通过名称来识别它。端口扫描仍将显示为打开。用户可以使用--allports选项覆盖exclude指令。这将导致版本检测询问所有打开的端口。
+    Exclude <port specification>
+    Exclude 53,T:9100,U:30000-40000
 
 
+#### Probe Directive 探测端口
+    
+    告诉nmap要发送什么字符串来识别各种服务。协议必须是TCP或UDP。内容告诉nmap发送什么。它必须以q开头，然后是一个分隔符，该分隔符开始和结束字符串。q|。。。。|
+    Probe <protocol> <probename> <probestring>
+            协议        探针        内容
+    Probe TCP GetRequest q|GET / HTTP/1.0\r\n\r\n|
+    Probe UDP DNSStatusRequest q|\0\0\x10\0\0\0\0\0\0\0\0\0|
+    Probe TCP NULL q||
+
+#### match Directive 匹配指令
+
+    告诉nmap如何根据响应来识别服务。一条探测线后面可能跟着几十条或几百条匹配语句。服务是模式匹配的服务名。决定接收到的响应是否服务匹配。m/[regex]/[opts]。包含几个可选字段。每个字段以一个识别字母开头
+    match <service> <pattern> [<versioninfo>]
+            服务        正则        版本信息
+    match ftp m/^220.*Welcome to .*Pure-?FTPd (\d\S+\s*)/ p/Pure-FTPd/ v/$1/ cpe:/a:pureftpd:pure-ftpd:$1/
+    match ssh m/^SSH-([\d.]+)-OpenSSH[_-]([\w.]+)\r?\n/i p/OpenSSH/ v/$2/ i/protocol $1/ cpe:/a:openbsd:openssh:$2/
+    match mysql m|^\x10\0\0\x01\xff\x13\x04Bad handshake$| p/MySQL/ cpe:/a:mysql:mysql/
+    match chargen m|@ABCDEFGHIJKLMNOPQRSTUVWXYZ|
+    match uucp m|^login: login: login: $| p/NetBSD uucpd/ o/NetBSD/ cpe:/o:netbsd:netbsd/a
+    match printer m|^([\w-_.]+): lpd: Illegal service request\n$| p/lpd/ h/$1/
+    match afs m|^[\d\D]{28}\s*(OpenAFS)([\d\.]{3}[^\s\0]*)\0| p/$1/ v/$2/
 
 
+#### softmatch Directive 软匹配指令
 
-service_scan.cc/service_scan.h
+    扫描在软匹配之后继续进行，但仅限于已知与给定服务匹配的探测。这允许以后找到一个正常的（“硬”）匹配，这可能会提供有用的版本信息。
+    softmatch <service> <pattern>
+    softmatch ftp m/^220 [-.\w ]+ftp.*\r\n$/i
+    softmatch smtp m|^220 [-.\w ]+SMTP.*\r\n|
+    softmatch pop3 m|^\+OK [-\[\]\(\)!,/+:<>@.\w ]+\r\n$|
+
+
+#### ports and sslports Directives 端口和sslports指令
+
+    告诉nmap此探测标识的服务通常位于哪个端口上。在每个探头段内只能使用一次。
+    ports <portlist>
+    ports 21,43,110,113,199,505,540,1248,5432,30444
+    ports 111,4045,32750-32810,38978
+
+#### totalwaitms Directive tcpwrappedms Directive rarity Directive
+
+    放弃之前等待的时间量。
+    totalwaitms <milliseconds>
+    totalwaitms 6000
+    此指令仅用于空探测。如果某个服务在此计时器用完之前关闭了TCP连接，则该服务将被标记为tcpwrapped。否则，匹配将照常继续。
+    tcpwrappedms <milliseconds>
+    tcpwrappedms 3000
+    大致对应于此探测返回有用结果的频率。数字越高，就越少考虑使用探测器，也越不可能对服务进行尝试。
+    rarity <value between 1 and 9>
+    rarity 6
+
+#### fallback Directive 回退指令
+
+    此可选指令指定如果当前探测节中没有匹配项，应将哪些探测用作回退。如果存在fallback指令，nmap首先尝试来自探测本身的匹配行，然后尝试来自fallback指令中指定的探测的匹配行（从左到右）。最后，nmap将尝试空探测。对于udp，除了从未尝试过空探测之外，其他行为都是相同的。
+    fallback <Comma separated list of probes>
+    fallback GetRequest,GenericLines
+
+
+service_scan.cc/service_scan.
