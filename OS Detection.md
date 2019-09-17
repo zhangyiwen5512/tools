@@ -157,15 +157,181 @@
     这些数据包在TCP选项中有很多不同的使用方式，还有不同的TCP窗口大小值。 以下列表提供了六个数据包的具体选项和值。 列出的窗口大小的值并不会反映窗口缩放的值。EOL是TCP选项结束符，默认情况下许多嗅探工具都不会显示。
 
 
-    包#1：窗口缩放（10），NOP，MSS（1460），时间戳（TSval：0xFFFFFFFF; TSecr：0），允许SACK。 窗口大小为1。\
+### 包#1：窗口缩放（10），NOP，MSS（1460），时间戳（TSval：0xFFFFFFFF; TSecr：0），允许SACK。 窗口大小为1。\
 ![](./assets/52411.png)
-    包#2： MSS（1400），窗口缩放（0），允许SACK，时间戳（TSval：0xFFFFFFFF; TSecr：0），EOL。 窗口大小为63。
+![](./assets/524113.png)
+![](./assets/524111.png)
+![](./assets/524112.png)
+
+### 包#2： MSS（1400），窗口缩放（0），允许SACK，时间戳（TSval：0xFFFFFFFF; TSecr：0），EOL。 窗口大小为63。
 ![](./assets/52412.png)
-    包#3：时间戳（TSval：0xFFFFFFFF; TSecr：0），NOP，NOP，窗口缩放（5），NOP，MSS（640）。 窗口大小为4。
+![](./assets/524123.png)
+![](./assets/524121.png)
+![](./assets/524122.png)
+
+###    包#3：时间戳（TSval：0xFFFFFFFF; TSecr：0），NOP，NOP，窗口缩放（5），NOP，MSS（640）。 窗口大小为4。
 ![](./assets/52413.png)
-    包#4：允许SACK，时间戳（TSval：0xFFFFFFFF; TSecr：0），窗口缩放（10），EOL。 窗口大小为4。
+![](./assets/524133.png)
+![](./assets/524131.png)
+![](./assets/524132.png)
+
+###    包#4：允许SACK，时间戳（TSval：0xFFFFFFFF; TSecr：0），窗口缩放（10），EOL。 窗口大小为4。
 ![](./assets/52414.png)
-    包#5： MSS（536），允许SACK，时间戳（TSval：0xFFFFFFFF; TSecr：0），窗口缩放（10），EOL。 窗口大小是16。
+![](./assets/524143.png)
+![](./assets/524141.png)
+![](./assets/524142.png)
+
+###    包#5： MSS（536），允许SACK，时间戳（TSval：0xFFFFFFFF; TSecr：0），窗口缩放（10），EOL。 窗口大小是16。
 ![](./assets/52415.png)
-    包#6： MSS（265），允许SACK，时间戳（TSval：0xFFFFFFFF; TSecr：0）。 窗口大小是512。
+![](./assets/524153.png)
+![](./assets/524151.png)
+![](./assets/524152.png)
+
+###    包#6： MSS（265），允许SACK，时间戳（TSval：0xFFFFFFFF; TSecr：0）。 窗口大小是512.
 ![](./assets/52416.png)
+![](./assets/524163.png)
+![](./assets/524161.png)
+![](./assets/524162.png)
+
+
+    这些测试的结果包括四个类别。 第一个SEQ探测包含基于探测包的序列分析的结果，测试结果表现为GCD，SP，ISR，TI，II，TS和SS的数值。下一个OPS测试包含每个探测报文对应响应结果的TCP选项（测试名称为O1到06）。同理，WIN测试包含响应的窗口大小（名为W1到W6）。与这些探测报文相关的最后一项T1，包含对数据包#1的响应的各种测试值，这些结果决定R，DF，T，TG，W，S，A，F，O，RD和Q的测试值。而这项T1测试仅针对第一个探测报文报告，因为它们对于接下来每个探测报文的反应总是几乎完全相同的。
+
+
+###  ICMP echo ICMP响应测试（IE）
+    发送两个ICMP响应请求数据包到目标。 
+    
+### ICMP包1
+    IP DF位会置位，服务类型（TOS） 字节值为0，代码为9（即使它应该为0），序列号为295， IP ID和ICMP请求标识符随机，以及120字节的0x00用于数据有效载荷。
+![](./assets/2325.png)
+![](./assets/2333.png)
+
+
+### ICMP包2
+    ping询问也类似，除了使用四个TOS（ IP_TOS_RELIABILITY ），代码为零，发送150个字节的数据，并且ICMP请求标识符和序列号也从先前的值加1。
+![](./assets/2326.png)
+![](./assets/2335.png)
+
+    将这两种探测报文的响应，组合为R，DFI，T，TG和CD的测试结果。只有两个探测报文都引出响应，R值才为真（Y）。 T和CD值仅来自第一个探测的响应结果，因为两次的结果会完全一致。 DFI是针对特殊的双探测报文ICMP外壳的定制测试。
+
+    这些ICMP探测会在TCP序列探测之后立即进行，以确保共享IP ID序列号测试的有效结果
+
+### TCP explicit congestion notification (ECN) TCP显式拥塞通知测试（ECN）
+    测试目标TCP栈中是否支持显式拥塞通知（ECN）。Nmap通过发送一个SYN数据包对此进行测试，该数据包设置了ECN、CWR和ECE拥塞控制标志。对于不相关（到ECN）测试，即使未设置紧急标志，也使用0xF7F5的紧急字段值，确认号为0，序列号随机，窗口大小为3，并且紧接在CWR位之前的保留位被置位。 TCP选项是：窗口缩放（10），NOP，MSS（1460），允许SACK，NOP，NOP，探测报文被发送到开放端口。
+
+    如果收到响应，则记录R，DF，T，TG，W，O，CC和Q的测试值。
+![](./assets/2328.png)
+![](./assets/2342.png)
+![](./assets/2343.png)
+![](./assets/2388.png) 
+![](./assets/2399.png) 
+![](./assets/2400.png) 
+
+
+### TCP (T2–T7) TCP测试（T2 - T7）
+    T2到T7测试每个会发送一个TCP探测包。除了有一个例外，其他包的TCP选项数据都是（十六进制） 03030A0102040109080AFFFFFFFF000000000402。这20个字节对应于：窗口缩放（10），NOP，MSS（265），时间戳（TSval：0xFFFFFFFF; TSecr：0），然后允许SACK。 这里例外的情况是指T7使用的窗口缩放为15而不是10。每个探测报文的变量特征如下所述：
+
+
+###    T2发送一个TCP空（无标志设置< NONE>）数据包，其中IP DF置位，窗口大小为128，发送到开放端口。
+![](./assets/2329.png) 
+![](./assets/2344.png) 
+![](./assets/2350.png) 
+![](./assets/2355.png) 
+![](./assets/2389.png) 
+![](./assets/2402.png) 
+![](./assets/2408.png) 
+![](./assets/2415.png) 
+
+
+###    T3发送一个TCP SYN，FIN，URG和PSH标志置位数据包，其中IP DF未置位，窗口大小为256，发送到开放端口。
+![](./assets/2331.png) 
+![](./assets/2345.png) 
+![](./assets/2351.png) 
+![](./assets/2356.png) 
+![](./assets/2390.png) 
+![](./assets/2403.png) 
+![](./assets/2409.png)
+![](./assets/2416.png) 
+
+
+###    T4发送一个TCP ACK数据包，其中IP DF置位，窗口大小为1024，发送到开放端口。
+![](./assets/2334.png)
+![](./assets/2347.png)
+![](./assets/2352.png)
+![](./assets/2357.png)
+![](./assets/2391.png)
+![](./assets/2405.png)
+![](./assets/2410.png)
+![](./assets/2417.png) 
+
+
+###    T5发送一个TCP SYN数据包，其中IP DF未置位，窗口大小为31337，发送到关闭端口。
+![](./assets/2336.png)
+![](./assets/2346.png)
+![](./assets/2394.png)
+![](./assets/2404.png)
+
+###   T6发送一个TCP ACK数据包，其中IP DF置位，窗口大小为32768，发送到关闭端口。
+![](./assets/2337.png)
+![](./assets/2348.png)
+![](./assets/2353.png)
+![](./assets/2358.png)
+![](./assets/2395.png)
+![](./assets/2406.png)
+![](./assets/2413.png)
+![](./assets/2418.png)
+
+
+
+###    T7发送一个TCP FIN，URG和PSH标志置位数据包，其中IP DF未置位，窗口大小为65535，发送到关闭端口。
+![](./assets/2339.png)
+![](./assets/2349.png)
+![](./assets/2354.png)
+![](./assets/2359.png)
+![](./assets/2398.png)
+![](./assets/2407.png)
+![](./assets/2414.png)
+![](./assets/2419.png)
+
+    在每种情况下，将每一次的结果添加到指纹中，其结果为R，DF，T，TG，W，S，A，F，O，RD和Q的测试值。
+
+
+### UDP (U1) UDP测试（U1）
+
+
+
+## Response Tests各种测试内容
+
+### TCP ISN greatest common divisor (GCD)
+
+### TCP ISN counter rate (ISR)
+### TCP ISN sequence predictability index (SP)
+
+
+### IP ID sequence generation algorithm (TI, CI, II)
+### Shared IP ID sequence Boolean (SS)
+### TCP timestamp option algorithm (TS)
+### TCP options (O, O1–O6)
+### TCP initial window size (W, W1–W6)
+### Responsiveness (R)
+### IP don't fragment bit (DF)
+### Don't fragment (ICMP) (DFI)
+
+### IP initial time-to-live (T)
+### IP initial time-to-live guess (TG)
+### Explicit congestion notification (CC)
+### TCP miscellaneous quirks (Q)
+### TCP sequence number (S)
+### TCP acknowledgment number (A)
+### TCP flags (F)
+
+### TCP RST data checksum (RD)
+### IP total length (IPL)
+### Unused port unreachable field nonzero (UN)
+### Returned probe IP total length value (RIPL)
+### Returned probe IP ID value (RID)
+### Integrity of returned probe IP checksum value (RIPCK)
+### Integrity of returned probe UDP checksum (RUCK)
+### Integrity of returned UDP data (RUD)
+### ICMP response code (CD)
+
+### TCP (T2–T7)
